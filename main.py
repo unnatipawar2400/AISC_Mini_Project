@@ -210,14 +210,8 @@ class EnergyHandler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     server = HTTPServer((HOST, PORT), EnergyHandler)
-    url = f"http://{HOST}:{PORT}"
 
-    print(f"Smart Energy Advisor running at {url}")
-    print("Keep this terminal open while using the webpage.")
-
-    threading.Timer(
-        1.0, lambda: webbrowser.open(url)
-    ).start()
+    print(f"Smart Energy Advisor running on port {PORT}")
 
     try:
         server.serve_forever()
