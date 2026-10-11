@@ -1,249 +1,383 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Building Energy Optimizer</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Building Energy Optimizer</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+* { box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #172554;
-        }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f3f6fb;
+    color: #203047;
+}
 
-        header {
-            background: #173b70;
-            color: white;
-            padding: 30px 8%;
-        }
+header {
+    background: #173f70;
+    color: white;
+    text-align: center;
+    padding: 28px 16px;
+}
 
-        header p {
-            color: #dbeafe;
-        }
+header h1 { margin: 0 0 8px; }
+header p { margin: 0; color: #e0ebf8; }
 
-        main {
-            max-width: 1000px;
-            margin: 28px auto;
-            padding: 0 18px;
-        }
+.container {
+    max-width: 1000px;
+    margin: 25px auto;
+    padding: 0 16px;
+}
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-        }
+.card {
+    background: white;
+    padding: 24px;
+    margin-bottom: 20px;
+    border-radius: 14px;
+    box-shadow: 0 3px 14px #20304712;
+}
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 22px;
-            box-shadow: 0 3px 12px #0000000d;
-        }
+h2 {
+    color: #173f70;
+    margin-top: 0;
+}
 
-        .label {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
 
-        .value {
-            font-size: 27px;
-            font-weight: bold;
-            overflow-wrap: anywhere;
-        }
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
 
-        .section {
-            margin-top: 20px;
-        }
+input, select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    font-size: 15px;
+    background: white;
+}
 
-        .badge {
-            display: inline-block;
-            border-radius: 20px;
-            padding: 8px 13px;
-            font-weight: bold;
-        }
+button {
+    border: 0;
+    border-radius: 8px;
+    padding: 13px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
-        .Low {
-            background: #dcfce7;
-            color: #166534;
-        }
+.primary {
+    background: #1769aa;
+    color: white;
+    margin-top: 20px;
+}
 
-        .Medium {
-            background: #fef3c7;
-            color: #92400e;
-        }
+.primary:hover { background: #12558b; }
 
-        .High {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+.secondary {
+    background: #e7edf5;
+    color: #203047;
+    margin-top: 12px;
+}
 
-        li {
-            margin-bottom: 12px;
-            line-height: 1.5;
-        }
+.hidden { display: none; }
 
-        .bar-background {
-            height: 13px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            margin-top: 15px;
-            overflow: hidden;
-        }
+.metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
 
-        .bar {
-            height: 100%;
-            background: #2563eb;
-            width: 0%;
-        }
+.metric {
+    background: #f0f6ff;
+    padding: 17px;
+    border-radius: 10px;
+}
 
-        .note {
-            color: #64748b;
-            font-size: 13px;
-            line-height: 1.6;
-            margin-top: 20px;
-        }
+.metric span {
+    display: block;
+    font-size: 14px;
+    color: #52647b;
+    margin-bottom: 8px;
+}
 
-        @media (max-width: 700px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+.metric strong {
+    font-size: 24px;
+    color: #173f70;
+    overflow-wrap: anywhere;
+}
+
+.level {
+    display: inline-block;
+    padding: 7px 13px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.low { background: #d8f5e4; color: #176b3b; }
+.medium { background: #fff0c2; color: #805600; }
+.high { background: #ffe0df; color: #a32626; }
+
+#recommendations li {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.note {
+    background: #fff8e6;
+    padding: 13px;
+    border-radius: 8px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+#message {
+    color: #a32626;
+    margin-top: 14px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #65758a;
+    font-size: 13px;
+}
+
+@media (max-width: 650px) {
+    .form-grid, .metrics { grid-template-columns: 1fr; }
+    .card { padding: 18px; }
+}
+</style>
 </head>
 
 <body>
-    <header>
-        <h1>Smart Building Energy Optimizer</h1>
-        <p>Energy estimation and energy-saving recommendations</p>
-    </header>
+<header>
+    <h1>Smart Building Energy Optimizer</h1>
+    <p>Estimate energy consumption and explore energy-saving opportunities</p>
+</header>
 
-    <main>
-        <h2>Results for Your Input Data</h2>
-        <p id="updated">Loading data...</p>
+<main class="container">
 
-        <section class="grid">
-            <div class="card">
-                <div class="label">Room Type</div>
-                <div class="value" id="room">--</div>
+<section class="card">
+    <h2>Enter Room Details</h2>
+
+    <form id="energyForm">
+        <div class="form-grid">
+
+            <div>
+                <label for="room_type">Room Type</label>
+                <select id="room_type" required>
+                    <option value="Classroom">Classroom</option>
+                    <option value="Computer Lab">Computer Lab</option>
+                    <option value="Office">Office</option>
+                </select>
             </div>
 
-            <div class="card">
-                <div class="label">Temperature</div>
-                <div class="value">
-                    <span id="temperature">--</span> °C
-                </div>
+            <div>
+                <label for="occupants">Number of People</label>
+                <input id="occupants" type="number" min="0"
+                       max="10000" value="30" required>
             </div>
 
-            <div class="card">
-                <div class="label">People in Room</div>
-                <div class="value" id="people">--</div>
+            <div>
+                <label for="temperature">Room Temperature (°C)</label>
+                <input id="temperature" type="number" min="-20"
+                       max="80" step="0.1" value="28" required>
             </div>
 
-            <div class="card">
-                <div class="label">Active Appliances</div>
-                <div class="value" id="appliances">--</div>
+            <div>
+                <label for="lights">Number of Lights</label>
+                <input id="lights" type="number" min="0"
+                       max="10000" value="6" required>
             </div>
 
-            <div class="card">
-                <div class="label">Estimated Energy</div>
-                <div class="value">
-                    <span id="energy">--</span> kW
-                </div>
-                <div class="bar-background">
-                    <div class="bar" id="bar"></div>
-                </div>
+            <div>
+                <label for="fans">Number of Fans</label>
+                <input id="fans" type="number" min="0"
+                       max="10000" value="4" required>
             </div>
 
-            <div class="card">
-                <div class="label">Energy Level</div>
-                <div class="value">
-                    <span class="badge Medium" id="level">--</span>
-                </div>
+            <div>
+                <label for="acs">Number of AC Units</label>
+                <input id="acs" type="number" min="0"
+                       max="10000" value="1" required>
             </div>
-        </section>
 
-        <section class="card section">
-            <h2>Energy-Saving Recommendations</h2>
-            <ul id="tips"></ul>
-        </section>
+            <div>
+                <label for="projectors">Number of Projectors</label>
+                <input id="projectors" type="number" min="0"
+                       max="10000" value="1" required>
+            </div>
 
-        <section class="card section">
-            <h2>About This Estimate</h2>
-            <p>
-                The energy value is calculated using illustrative assumptions. 
-                It is not a measured electricity reading
-                or a trained machine-learning prediction.
-            </p>
-        </section>
+            <div>
+                <label for="computers">Number of Computers</label>
+                <input id="computers" type="number" min="0"
+                       max="10000" value="2" required>
+            </div>
 
+            <div>
+                <label for="other">Other Appliances</label>
+                <input id="other" type="number" min="0"
+                       max="10000" value="0" required>
+            </div>
+
+            <div>
+                <label for="daylight">Is Natural Daylight Sufficient?</label>
+                <select id="daylight" required>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="cooling">Is Cooling Needed?</label>
+                <select id="cooling" required>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+        </div>
+
+        <button class="primary" type="submit">
+            Get Energy Advice
+        </button>
+
+        <p id="message" role="alert"></p>
+    </form>
+</section>
+
+<section id="results" class="card hidden" aria-live="polite">
+    <h2>Energy Analysis Results</h2>
+
+    <div class="metrics">
+        <div class="metric">
+            <span>Room Type</span>
+            <strong id="resultRoom">—</strong>
+        </div>
+
+        <div class="metric">
+            <span>People</span>
+            <strong id="resultPeople">—</strong>
+        </div>
+
+        <div class="metric">
+            <span>Temperature</span>
+            <strong id="resultTemp">—</strong>
+        </div>
+
+        <div class="metric">
+            <span>Active Appliances</span>
+            <strong id="resultAppliances">—</strong>
+        </div>
+
+        <div class="metric">
+            <span>Estimated Energy</span>
+            <strong id="resultEnergy">—</strong>
+        </div>
+
+        <div class="metric">
+            <span>Energy Level</span>
+            <strong><span id="resultLevel" class="level">—</span></strong>
+        </div>
+    </div>
+
+    <h2 style="margin-top:25px">Energy-Saving Recommendations</h2>
+    <ul id="recommendations"></ul>
+
+    <h2>About This Estimate</h2>
+    <p id="estimateNote" class="note"></p>
+
+    <button class="secondary" type="button"
+            onclick="window.print()">
+        Print Results
+    </button>
+</section>
+
+</main>
+
+<footer>
+    AI-Based Smart Energy Advisor for Smart Buildings
+</footer>
+
+<script>
+const form = document.getElementById("energyForm");
+const message = document.getElementById("message");
+const results = document.getElementById("results");
+
+form.addEventListener("submit", async function(event) {
+    event.preventDefault();
+    message.textContent = "Analyzing room details...";
     
-    </main>
+    const fields = [
+        "room_type", "occupants", "temperature", "lights",
+        "fans", "acs", "projectors", "computers", "other",
+        "daylight", "cooling"
+    ];
 
-    <script>
-        async function showResults() {
-            try {
-                const response = await fetch(
-                    "current_input.json?t=" + Date.now()
-                );
+    const data = {};
+    for (const field of fields) {
+        data[field] = document.getElementById(field).value;
+    }
 
-                if (!response.ok) {
-                    throw new Error("Run main.py first.");
-                }
+    try {
+        const response = await fetch("/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
 
-                const data = await response.json();
+        const result = await response.json();
 
-                document.getElementById("room").textContent =
-                    data.room_type;
-
-                document.getElementById("temperature").textContent =
-                    data.temperature;
-
-                document.getElementById("people").textContent =
-                    data.people;
-
-                document.getElementById("appliances").textContent =
-                    data.appliances;
-
-                document.getElementById("energy").textContent =
-                    Number(data.estimated_energy).toFixed(2);
-
-                document.getElementById("updated").textContent =
-                    "Last updated: " + data.updated_at;
-
-                const level = document.getElementById("level");
-                level.textContent = data.energy_level;
-                level.className = "badge " + data.energy_level;
-
-                document.getElementById("bar").style.width =
-                    Math.min(
-                        100,
-                        Number(data.estimated_energy) / 4 * 100
-                    ) + "%";
-
-                const tips = document.getElementById("tips");
-                tips.replaceChildren();
-
-                data.recommendations.forEach(function (tip) {
-                    const item = document.createElement("li");
-                    item.textContent = tip;
-                    tips.appendChild(item);
-                });
-
-            } catch (error) {
-                document.getElementById("updated").textContent =
-                    error.message;
-            }
+        if (!response.ok) {
+            throw new Error(result.error || "Unable to analyze inputs.");
         }
 
-        showResults();
-    </script>
+        document.getElementById("resultRoom").textContent =
+            result.room_type;
+        document.getElementById("resultPeople").textContent =
+            result.occupants;
+        document.getElementById("resultTemp").textContent =
+            result.temperature + " °C";
+        document.getElementById("resultAppliances").textContent =
+            result.active_appliances;
+        document.getElementById("resultEnergy").textContent =
+            result.estimated_energy + " kW";
+
+        const level = document.getElementById("resultLevel");
+        level.textContent = result.energy_level;
+        level.className = "level " + result.energy_level.toLowerCase();
+
+        const list = document.getElementById("recommendations");
+        list.replaceChildren();
+
+        for (const advice of result.recommendations) {
+            const item = document.createElement("li");
+            item.textContent = advice;
+            list.appendChild(item);
+        }
+
+        document.getElementById("estimateNote").textContent =
+            result.note;
+
+        results.classList.remove("hidden");
+        message.textContent = "";
+        results.scrollIntoView({ behavior: "smooth" });
+
+    } catch (error) {
+        message.textContent =
+            "Error: " + error.message +
+            " Check that main.py is running and try again.";
+    }
+});
+</script>
 </body>
 </html>
