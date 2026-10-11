@@ -1,0 +1,25 @@
+{
+    "room_type": "Office",
+    "temperature": 30.0,
+    "people": 41,
+    "appliances": 58,
+    "estimated_energy": 17.29,
+    "energy_level": "High",
+    "recommendations": [
+        "The classroom has 41 students. Keep sufficient lighting and airflow for everyone.",
+        "6 lights are active and daylight is available. Check the brightness in different areas and switch off only lights in areas that remain adequately lit.",
+        "30.0\u00b0C is warm and cooling is needed. Keep appropriate cooling; check the set temperature and close doors or windows where suitable.",
+        "39 computers are active. Close unused systems and shut down computers that are not needed for the class.",
+        "4 other appliance(s) are active. Review each one and switch off only equipment that is not required.",
+        "There are 58 active appliances. Perform an appliance-by-appliance review rather than switching off a fixed number without checking their purpose."
+    ],
+    "appliance_breakdown": {
+        "Lights": 6,
+        "Fans": 0,
+        "AC units": 9,
+        "Projectors": 0,
+        "Computers": 39,
+        "Other": 4
+    },
+    "updated_at": "11 Oct 2026, 12:51:24 PM"
+}

@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Building Energy Optimizer</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172554;
+        }
+
+        header {
+            background: #173b70;
+            color: white;
+            padding: 30px 8%;
+        }
+
+        header p {
+            color: #dbeafe;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 28px auto;
+            padding: 0 18px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 3px 12px #0000000d;
+        }
+
+        .label {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .value {
+            font-size: 27px;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .section {
+            margin-top: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            border-radius: 20px;
+            padding: 8px 13px;
+            font-weight: bold;
+        }
+
+        .Low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .Medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .High {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        li {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .bar-background {
+            height: 13px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background: #2563eb;
+            width: 0%;
+        }
+
+        .note {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Smart Building Energy Optimizer</h1>
+        <p>Energy estimation and energy-saving recommendations</p>
+    </header>
+
+    <main>
+        <h2>Results for Your Input Data</h2>
+        <p id="updated">Loading data...</p>
+
+        <section class="grid">
+            <div class="card">
+                <div class="label">Room Type</div>
+                <div class="value" id="room">--</div>
+            </div>
+
+            <div class="card">
+                <div class="label">Temperature</div>
+                <div class="value">
+                    <span id="temperature">--</span> °C
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">People in Room</div>
+                <div class="value" id="people">--</div>
+            </div>
+
+            <div class="card">
+                <div class="label">Active Appliances</div>
+                <div class="value" id="appliances">--</div>
+            </div>
+
+            <div class="card">
+                <div class="label">Estimated Energy</div>
+                <div class="value">
+                    <span id="energy">--</span> kW
+                </div>
+                <div class="bar-background">
+                    <div class="bar" id="bar"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">Energy Level</div>
+                <div class="value">
+                    <span class="badge Medium" id="level">--</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="card section">
+            <h2>Energy-Saving Recommendations</h2>
+            <ul id="tips"></ul>
+        </section>
+
+        <section class="card section">
+            <h2>About This Estimate</h2>
+            <p>
+                The energy value is calculated using illustrative assumptions. 
+                It is not a measured electricity reading
+                or a trained machine-learning prediction.
+            </p>
+        </section>
+
+    
+    </main>
+
+    <script>
+        async function showResults() {
+            try {
+                const response = await fetch(
+                    "current_input.json?t=" + Date.now()
+                );
+
+                if (!response.ok) {
+                    throw new Error("Run main.py first.");
+                }
+
+                const data = await response.json();
+
+                document.getElementById("room").textContent =
+                    data.room_type;
+
+                document.getElementById("temperature").textContent =
+                    data.temperature;
+
+                document.getElementById("people").textContent =
+                    data.people;
+
+                document.getElementById("appliances").textContent =
+                    data.appliances;
+
+                document.getElementById("energy").textContent =
+                    Number(data.estimated_energy).toFixed(2);
+
+                document.getElementById("updated").textContent =
+                    "Last updated: " + data.updated_at;
+
+                const level = document.getElementById("level");
+                level.textContent = data.energy_level;
+                level.className = "badge " + data.energy_level;
+
+                document.getElementById("bar").style.width =
+                    Math.min(
+                        100,
+                        Number(data.estimated_energy) / 4 * 100
+                    ) + "%";
+
+                const tips = document.getElementById("tips");
+                tips.replaceChildren();
+
+                data.recommendations.forEach(function (tip) {
+                    const item = document.createElement("li");
+                    item.textContent = tip;
+                    tips.appendChild(item);
+                });
+
+            } catch (error) {
+                document.getElementById("updated").textContent =
+                    error.message;
+            }
+        }
+
+        showResults();
+    </script>
+</body>
+</html>

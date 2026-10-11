@@ -1,0 +1,9 @@
+{
+  "assumed_average_appliance_kw": 0.12,
+  "cooling_reference_c": 25,
+  "cooling_kw_per_degree": 0.08,
+  "occupancy_kw_per_person": 0.015,
+  "low_energy_max_kw": 1.0,
+  "medium_energy_max_kw": 2.0,
+  "note": "Illustrative assumptions only. Calibrate with measured appliance ratings and energy meter data for real use."
+}
