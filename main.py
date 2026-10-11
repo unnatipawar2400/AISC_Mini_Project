@@ -1,209 +1,35 @@
-
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse
 import json
-import subprocess
-import sys
 import webbrowser
+import threading
 from pathlib import Path
-from datetime import datetime
 
-PROJECT_DIR = Path(__file__).resolve().parent
-DATA_FILE = PROJECT_DIR / "current_input.json"
+HOST = "127.0.0.1"
+PORT = 8765
 
-
-def ask_int(prompt, minimum=0, maximum=500):
-    while True:
-        try:
-            value = int(input(prompt))
-            if minimum <= value <= maximum:
-                return value
-            print(f"Enter a whole number from {minimum} to {maximum}.")
-        except ValueError:
-            print("Please enter a valid whole number.")
+BASE_DIR = Path(__file__).resolve().parent
+HTML_FILE = BASE_DIR / "index.html"
+DATA_FILE = BASE_DIR / "current_input.json"
 
 
-def ask_float(prompt, minimum=0, maximum=50):
-    while True:
-        try:
-            value = float(input(prompt))
-            if minimum <= value <= maximum:
-                return value
-            print(f"Enter a value between {minimum} and {maximum}.")
-        except ValueError:
-            print("Please enter a valid number.")
+def analyze_energy(data):
+    # Read form values
+    room = data["room_type"]
+    occupants = int(data["occupants"])
+    temperature = float(data["temperature"])
 
+    lights = int(data["lights"])
+    fans = int(data["fans"])
+    acs = int(data["acs"])
+    projectors = int(data["projectors"])
+    computers = int(data["computers"])
+    other = int(data["other"])
 
-def get_yes_no(prompt):
-    while True:
-        answer = input(prompt + " (yes/no): ").strip().lower()
-        if answer in ("yes", "y"):
-            return True
-        if answer in ("no", "n"):
-            return False
-        print("Please type yes or no.")
+    daylight = data["daylight"]
+    cooling_needed = data["cooling"]
 
-
-def make_recommendations(
-    students, temperature, lights, fans, acs,
-    projectors, computers, other, daylight,
-    teaching_projector, cooling_needed
-):
-    tips = []
-    total = lights + fans + acs + projectors + computers + other
-
-    # Recommendations based on room occupancy
-    if students == 0:
-        tips.append(
-            "The classroom is empty. Switch off non-essential "
-            "lights, fans, projectors and computers."
-        )
-    else:
-        tips.append(
-            f"The classroom/Office has {students} students/employees. "
-            "Keep sufficient lighting and airflow for everyone."
-        )
-
-    # Lighting
-    if lights > 0 and daylight:
-        tips.append(
-            f"{lights} lights are active and daylight is available. "
-            "Check the brightness in different areas and switch off "
-            "only lights in areas that remain adequately lit."
-        )
-    elif lights >= 8:
-        tips.append(
-            f"{lights} lights are active. Inspect the room layout "
-            "and identify any unnecessarily illuminated areas."
-        )
-    elif lights == 0 and students > 0:
-        tips.append(
-            "No lights are active. Check that classroom lighting "
-            "is sufficient for students to read and work safely."
-        )
-
-    # Fans
-    if fans > 0 and students > 0:
-        tips.append(
-            f"{fans} fans are active for {students} students. "
-            "Check airflow and which areas each fan serves before "
-            "deciding whether any fan can be switched off."
-        )
-
-    # Air conditioning
-    if acs > 0:
-        if temperature >= 30 and cooling_needed:
-            tips.append(
-                f"{temperature}°C is warm and cooling is needed. "
-                "Keep appropriate cooling; check the set temperature "
-                "and close doors or windows where suitable."
-            )
-        elif not cooling_needed:
-            tips.append(
-                f"{acs} AC units are active, but cooling was marked "
-                "as not needed. Consider switching off an unused unit."
-            )
-        else:
-            tips.append(
-                f"{acs} AC units are active. Check room comfort and "
-                "whether every unit is required."
-            )
-
-    # Projectors
-    if projectors > 0:
-        if teaching_projector:
-            tips.append(
-                "A projector is needed for teaching. Keep the "
-                "required projector on and switch off any additional "
-                "projector that is not being used."
-            )
-        else:
-            tips.append(
-                f"{projectors} projector(s) are active but not needed "
-                "for teaching. Switch off unused projector(s)."
-            )
-
-    # Computers
-    if computers > 0:
-        tips.append(
-            f"{computers} computers are active. Close unused systems "
-            "and shut down computers that are not needed for the class."
-        )
-
-    # Other equipment
-    if other > 0:
-        tips.append(
-            f"{other} other appliance(s) are active. Review each one "
-            "and switch off only equipment that is not required."
-        )
-
-    # General recommendation
-    if total >= 12:
-        tips.append(
-            f"There are {total} active appliances. Perform an "
-            "appliance-by-appliance review rather than switching "
-            "off a fixed number without checking their purpose."
-        )
-    elif total == 0 and students > 0:
-        tips.append(
-            "No appliances are reported as active. Confirm that "
-            "essential classroom equipment is available."
-        )
-    else:
-        tips.append(
-            f"Review the {total} reported active appliances and "
-            "prioritize equipment that is currently unused."
-        )
-
-    return tips
-
-
-def main():
-    print("\n==========================================")
-    print(" SMART BUILDING ENERGY OPTIMIZER")
-    print(" Enter classroom details in the terminal")
-    print("==========================================")
-
-    print("\nRoom type:")
-    print("1. Classroom")
-    print("2. Computer Lab")
-    print("3. Office")
-
-    while True:
-        choice = input("Choose room type (1-3): ").strip()
-        if choice in ("1", "2", "3"):
-            room_type = {
-                "1": "Classroom",
-                "2": "Computer Lab",
-                "3": "Office"
-            }[choice]
-            break
-        print("Enter 1, 2, or 3.")
-
-    students = ask_int("Number of students/occupants: ")
-    temperature = ask_float("Room temperature in Celsius: ")
-
-    print("\nEnter the number currently switched ON:")
-    lights = ask_int("Lights: ")
-    fans = ask_int("Fans: ")
-    acs = ask_int("AC units: ")
-    projectors = ask_int("Projectors: ")
-    computers = ask_int("Computers: ")
-    other = ask_int("Other appliances: ")
-
-    daylight = get_yes_no(
-        "Is there sufficient natural daylight in the room?"
-    ) if lights > 0 else False
-
-    teaching_projector = get_yes_no(
-        "Is a projector currently needed for teaching?"
-    ) if projectors > 0 else False
-
-    cooling_needed = get_yes_no(
-        "Is cooling currently needed for comfort?"
-    ) if acs > 0 else False
-
-    total = lights + fans + acs + projectors + computers + other
-
-    # Simple illustrative estimate, not measured energy consumption.
+    # Illustrative appliance power assumptions (kW per appliance)
     energy = (
         lights * 0.04
         + fans * 0.075
@@ -212,77 +38,191 @@ def main():
         + computers * 0.15
         + other * 0.1
     )
-    energy = round(energy, 2)
 
-    if energy <= 1:
+    active_appliances = (
+        lights + fans + acs + projectors + computers + other
+    )
+
+    if energy < 1:
         level = "Low"
     elif energy <= 3:
         level = "Medium"
     else:
         level = "High"
 
-    tips = make_recommendations(
-        students, temperature, lights, fans, acs,
-        projectors, computers, other, daylight,
-        teaching_projector, cooling_needed
-    )
+    recommendations = []
 
-    data = {
-        "room_type": room_type,
-        "temperature": temperature,
-        "people": students,
-        "appliances": total,
-        "estimated_energy": energy,
-        "energy_level": level,
-        "recommendations": tips,
-        "appliance_breakdown": {
-            "Lights": lights,
-            "Fans": fans,
-            "AC units": acs,
-            "Projectors": projectors,
-            "Computers": computers,
-            "Other": other
-        },
-        "updated_at": datetime.now().strftime(
-            "%d %b %Y, %I:%M:%S %p"
+    if occupants > 0:
+        recommendations.append(
+            f"The {room.lower()} has {occupants} occupants. "
+            "Maintain suitable lighting and airflow for everyone."
         )
+
+    if temperature >= 30 and cooling_needed == "yes":
+        recommendations.append(
+            f"At {temperature:.1f}°C, the room is warm. "
+            "Use appropriate cooling and a reasonable set temperature."
+        )
+    elif cooling_needed == "no" and acs > 0:
+        recommendations.append(
+            "Cooling is not needed according to your input. "
+            "Check whether the AC units need to remain on."
+        )
+
+    if daylight == "yes" and lights > 0:
+        recommendations.append(
+            "Natural daylight is sufficient. Consider switching off "
+            "unneeded lights after checking the room's lighting needs."
+        )
+    elif daylight == "no":
+        recommendations.append(
+            "Natural daylight is insufficient. Keep adequate lighting "
+            "for safe and comfortable use of the room."
+        )
+
+    if computers > 0:
+        recommendations.append(
+            f"{computers} computers are listed. Shut down unused "
+            "systems when they are no longer needed."
+        )
+
+    if active_appliances > 0:
+        recommendations.append(
+            f"There are {active_appliances} active appliances. "
+            "Review each appliance before deciding whether it can be switched off."
+        )
+    else:
+        recommendations.append(
+            "No appliances were entered. Check your appliance counts."
+        )
+
+    return {
+        "room_type": room,
+        "occupants": occupants,
+        "temperature": temperature,
+        "active_appliances": active_appliances,
+        "estimated_energy": round(energy, 2),
+        "energy_level": level,
+        "recommendations": recommendations,
+        "note": (
+            "This estimate uses illustrative appliance power values. "
+            "It is not a measured electricity reading or a trained "
+            "machine-learning prediction."
+        ),
     }
 
-    DATA_FILE.write_text(
-        json.dumps(data, indent=4),
-        encoding="utf-8"
-    )
 
-    print("\n========== ANALYSIS ==========")
-    print("Room:", room_type)
-    print("Students/occupants:", students)
-    print("Active appliances:", total)
-    print("Estimated energy:", energy, "kW")
-    print("Estimated energy level:", level)
+class EnergyHandler(BaseHTTPRequestHandler):
 
-    print("\nRecommendations:")
-    for number, tip in enumerate(tips, start=1):
-        print(f"{number}. {tip}")
+    def send_content(self, status, content, content_type):
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(content)
 
-    print("\nOpening webpage...")
+    def do_GET(self):
+        path = urlparse(self.path).path
 
-    server = subprocess.Popen(
-        [
-            sys.executable, "-m", "http.server",
-            "8765", "--bind", "127.0.0.1"
-        ],
-        cwd=str(PROJECT_DIR),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
+        if path in ("/", "/index.html"):
+            try:
+                page = HTML_FILE.read_bytes()
+                self.send_content(
+                    200, page, "text/html; charset=utf-8"
+                )
+            except FileNotFoundError:
+                self.send_content(
+                    404, b"index.html was not found.",
+                    "text/plain; charset=utf-8"
+                )
+        else:
+            self.send_content(
+                404, b"Page not found.",
+                "text/plain; charset=utf-8"
+            )
 
-    try:
-        webbrowser.open("http://127.0.0.1:8765/index.html")
-        input("\nKeep this terminal open. Press Enter to stop the server...")
-    finally:
-        server.terminate()
-        server.wait()
+    def do_POST(self):
+        if urlparse(self.path).path != "/analyze":
+            self.send_content(
+                404, b'{"error":"Not found"}',
+                "application/json; charset=utf-8"
+            )
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+
+            if length <= 0 or length > 100_000:
+                raise ValueError("Invalid form submission.")
+
+            raw = self.rfile.read(length)
+            data = json.loads(raw.decode("utf-8"))
+
+            # Validate form fields
+            allowed_rooms = {"Classroom", "Computer Lab", "Office"}
+            if data.get("room_type") not in allowed_rooms:
+                raise ValueError("Choose a valid room type.")
+
+            for field in (
+                "occupants", "lights", "fans", "acs",
+                "projectors", "computers", "other"
+            ):
+                value = int(data[field])
+                if value < 0 or value > 10000:
+                    raise ValueError(
+                        f"{field} must be between 0 and 10000."
+                    )
+                data[field] = value
+
+            data["temperature"] = float(data["temperature"])
+            if not -20 <= data["temperature"] <= 80:
+                raise ValueError("Enter a valid temperature.")
+
+            if data.get("daylight") not in ("yes", "no"):
+                raise ValueError("Choose a daylight option.")
+
+            if data.get("cooling") not in ("yes", "no"):
+                raise ValueError("Choose a cooling option.")
+
+            result = analyze_energy(data)
+
+            # Save inputs and results for reference
+            with DATA_FILE.open("w", encoding="utf-8") as file:
+                json.dump(
+                    {"inputs": data, "results": result},
+                    file,
+                    indent=4
+                )
+
+            response = json.dumps(result).encode("utf-8")
+            self.send_content(
+                200, response, "application/json; charset=utf-8"
+            )
+
+        except (ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
+            response = json.dumps({"error": str(error)}).encode("utf-8")
+            self.send_content(
+                400, response, "application/json; charset=utf-8"
+            )
+
+    def log_message(self, format, *args):
+        print(f"{self.address_string()} - {format % args}")
 
 
 if __name__ == "__main__":
-    main()
+    server = HTTPServer((HOST, PORT), EnergyHandler)
+    url = f"http://{HOST}:{PORT}"
+
+    print(f"Smart Energy Advisor running at {url}")
+    print("Keep this terminal open while using the webpage.")
+
+    threading.Timer(
+        1.0, lambda: webbrowser.open(url)
+    ).start()
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServer stopped.")
+    finally:
+        server.server_close()
